@@ -5,7 +5,7 @@ import java.util.concurrent.Semaphore;
 public class ParkingManager {
     private final Semaphore sports;
 
-    public ParkingManager(int totalSpots, Semaphore sports){
+    public ParkingManager(int totalSpots){
 
         this.sports = new Semaphore(totalSpots,true);
     }

@@ -12,7 +12,7 @@ public class Vehicle {
     public void run(){
         manager.enter(licensePlate);
         try{
-            Thread.sleep((long) Math.random() * 5000);
+            Thread.sleep((long) (Math.random() * 5000));
         }catch(InterruptedException e){
             Thread.currentThread().interrupt();
         }
