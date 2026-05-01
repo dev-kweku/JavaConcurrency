@@ -4,26 +4,29 @@ import java.util.concurrent.Semaphore;
 
 public class ParkingManager {
     private final Semaphore sports;
+    private final ParkingDAO dao=new ParkingDAO();
 
-    public ParkingManager(int totalSpots){
+    public ParkingManager(int count){
 
-        this.sports = new Semaphore(totalSpots,true);
+        this.sports = new Semaphore(count,true);
     }
 
-    public void enter(String carNumberPlate){
+    public int enter(String carNumberPlate){
         try{
-            System.out.println(" " + carNumberPlate + " is looking for a spot...");
             sports.acquire();
-            System.out.println(" " + carNumberPlate + " has PARKED, Sports left : " + sports.availablePermits());
+            return dao.logEntry(carNumberPlate);
 
         }catch (InterruptedException e){
-            Thread.currentThread().interrupt();
+            return -1;
         }
+
     }
 
-    public void exit(String carNumberPlate){
-        System.out.println(" " + carNumberPlate + " is leaving");
+    public void exit(String carNumberPlate,int dbId){
+        System.out.println("DEBUG: EXIT called for " + carNumberPlate + " with ID" + dbId);
+        dao.logExit(dbId,5.00);
         sports.release();
-        System.out.println("Spot freed by " + carNumberPlate + " .Total available: "+ sports.availablePermits());
+
+
     }
 }

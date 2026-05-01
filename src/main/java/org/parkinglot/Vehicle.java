@@ -1,6 +1,6 @@
 package org.parkinglot;
 
-public class Vehicle {
+public class Vehicle extends Thread {
     private final String licensePlate;
     private final ParkingManager manager;
 
@@ -10,12 +10,12 @@ public class Vehicle {
     }
 
     public void run(){
-        manager.enter(licensePlate);
+        int recordId=manager.enter(this.licensePlate);
         try{
             Thread.sleep((long) (Math.random() * 5000));
         }catch(InterruptedException e){
             Thread.currentThread().interrupt();
         }
-        manager.exit(licensePlate);
+        manager.exit(this.licensePlate,recordId);
     }
 }

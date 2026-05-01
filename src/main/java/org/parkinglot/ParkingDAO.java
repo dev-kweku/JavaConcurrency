@@ -5,34 +5,44 @@ import java.time.LocalDateTime;
 
 public class ParkingDAO {
     public int logEntry(String plate){
-        String sql="INSERT INTO parking_history (license_plate, entry_time) VALUES (?, ?) RETURNING id";
-        try(Connection conn=DatabaseConfig.getConnection();
-            PreparedStatement stmt=conn.prepareStatement(sql)){
+        String sql="INSERT INTO parking_history (license_plate, entry_time) VALUES (?, CURRENT_TIMESTAMP) RETURNING id";
+        try(Connection conn=DatabaseConfig.getConnection();PreparedStatement stmt=conn.prepareStatement(sql)
+        ){
             stmt.setString(1,plate);
-            stmt.setTimestamp(2,Timestamp.valueOf(LocalDateTime.now()));
 
-            ResultSet result=stmt.executeQuery();
-            if(result.next()) return result.getInt(1);
-
-        }catch(SQLException e){
-            System.out.println("Database log failed "+ e.getMessage());
+            try(ResultSet result=stmt.executeQuery()){
+                if(result.next()){
+                    return result.getInt(1);
+                }
+            }
+        }catch (SQLException e){
+            System.out.println("Database log failed : " +e.getMessage());
         }
         return -1;
+
     }
 
-    public void logExist(int recordId,double fee){
-        String sql="UPDATE parking_history SET exit_time = ?, fee = ? WHERE id = ?";
-        try(Connection conn=DatabaseConfig.getConnection();
-            PreparedStatement stmt=conn.prepareStatement(sql)){
-                stmt.setTimestamp(1,Timestamp.valueOf(LocalDateTime.now()));
-                stmt.setDouble(2,fee);
-                stmt.setInt(3,recordId);
-                stmt.executeUpdate();
+    public void logExit(int recordId,double fee){
+        String sql="UPDATE parking_history SET exit_time = NOW(), fee = ? WHERE id = ?";
 
+        System.out.println("DEBUG: Attempting to update ID [" + recordId + "] with fee[ " +fee + " ]");
+        try(Connection conn=DatabaseConfig.getConnection()){
+            conn.setAutoCommit(true);
 
+            try(PreparedStatement stmt=conn.prepareStatement(sql)){
+                stmt.setDouble(1,fee);
+                stmt.setInt(2,recordId);
 
-        }catch(SQLException e){
-            System.out.println("Database update failed " + e.getMessage());
+                int rowsAffected=stmt.executeUpdate();
+
+                if(rowsAffected > 0){
+                    System.out.println("DB SUCCESS : ID "+ recordId + " updated");
+                }else{
+                    System.out.println("DB MISS: NO row found with ID " + recordId);
+                }
+            }
+        }catch (SQLException e){
+            System.out.println("SQL ERROR " + e.getMessage());
         }
     }
 
